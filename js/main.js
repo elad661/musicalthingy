@@ -97,14 +97,14 @@ function main() {
         pointerY = e.offsetY;
 	    var radius = 32;
 	    fgcontext.beginPath();
-	    fgcontext.globalAlpha = 0.7;
+	    fgcontext.globalAlpha = 0.6;
 	    fgcontext.arc(pointerX-32, pointerY-32, radius, 0, (Math.PI/180)*360, false);
 	    fgcontext.fill();
 	    fgcontext.closePath();
 
         piano.panning.location = parseFloat(pointerX / fgcanvas.width);
         if (!playing) {
-            playing = setTimeout(play_loop, 1);
+            playing = setTimeout(play_loop, 0);
         }
     })
     .on('mouseout', function(e) {
@@ -113,6 +113,19 @@ function main() {
         fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
         clearTimeout(playing);
         playing = false;
+    });
+    $(document).on('hide blur', function() {
+        console.log('hide');
+        if(playing) {
+            clearTimeout(playing);
+            playing = false;
+            piano.stop();
+    	}
+    }).on('show focus', function() {
+        console.log('show');
+        if (pointerX != null) {
+    	    playing = setTimeout(play_loop, 0);
+    	}
     });
 }
 
