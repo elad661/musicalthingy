@@ -10,7 +10,8 @@ var is_mouse_down = false;
 var playing = false;
 //var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
 var possible_chords = [['C5'], ['D5'], ['E5'], ['F5'], ['G5'], ['A5'], ['B5']]
-var possible_chords_bass = [['A2'], ['B2'], ['C2'], ['D2'], ['E2'], ['F2'], ['G2']]
+//var possible_chords_bass = [['A2'], ['B2'], ['C2'], ['D2'], ['E2'], ['F2'], ['G2']]
+var possible_chords_bass = [['C2'], ['D2'], ['E2'], ['F2'], ['G2'], ['A2'], ['B2']]
 var piano;
 var bass;
 if (window.AudioContext != undefined) {
@@ -153,6 +154,8 @@ function main() {
 	    var radius = 16;
 	    fgcontext.beginPath();
 	    fgcontext.globalAlpha = 0.6;
+	    if (is_mouse_down)
+	        fgcontext.globalAlpha = 0.75;
 	    fgcontext.arc(pointerX, pointerY, radius, 0, (Math.PI/180)*360, false);
 	    fgcontext.fill();
 	    fgcontext.closePath();
@@ -163,7 +166,7 @@ function main() {
             playing = setTimeout(play_loop, 0);
         }
     })
-    .on('mouseout', function(e) {
+    .on('mouseout touchend', function(e) {
         pointerX = null;
         pointerY = null;
         is_mouse_down = false;
@@ -174,6 +177,15 @@ function main() {
         is_mouse_down = true;
     }).on('mouseup', function(e) {
         is_mouse_down = false;
+    }).on('touchmove touchstart', function(e) {
+        var last_touch = e.originalEvent.changedTouches[e.originalEvent.changedTouches.length - 1];
+        pointerX = last_touch.screenX;
+        pointerY = last_touch.screenY;
+        piano.panning.location = parseFloat(pointerX / fgcanvas.width);
+        bass.panning.location = parseFloat(pointerX / fgcanvas.width);
+        if (!playing) {
+            playing = setTimeout(play_loop, 0);
+        }
     });
     $(document).on('hide blur', function() {
         if(playing) {
