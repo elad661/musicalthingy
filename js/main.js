@@ -8,25 +8,29 @@ var pointerX = null;
 var pointerY = null;
 var playing = false;
 var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
-var piano = new Wad({
-            source : 'square',
-            env : {
-                attack : .01,
-                decay : .005,
-                sustain : .2,
-                hold : .015,
-                release : .3
-            },
-            filter : {
-                type : 'lowpass',
-                frequency : 1200,
-                q : 8.5,
+var piano;
+if (window.AudioContext != undefined)
+    piano = new Wad({
+                source : 'square',
                 env : {
-                    attack : .2,
-                    frequency : 600
+                    attack : .01,
+                    decay : .005,
+                    sustain : .2,
+                    hold : .015,
+                    release : .3
+                },
+                filter : {
+                    type : 'lowpass',
+                    frequency : 1200,
+                    q : 8.5,
+                    env : {
+                        attack : .2,
+                        frequency : 600
+                    }
                 }
-            }
-        });
+            });
+else
+    unsupportedBrowser();
 
 ImageData.prototype.setPixel = function(x, y, pixel) {
     // Makes it easier to set a pixel on an imagedata
@@ -94,7 +98,18 @@ function play_loop() {
     create_note_bubble(current_chord);
 }
 
+function supported() {
+    return Modernizr.cssanimations && Modernizr.canvas;
+}
+
+function unsupportedBrowser() {
+    $('#canvas_container').hide();
+    $('#unsupported').removeClass('hidden');
+}
+
 function main() {
+    if (!supported())
+        return unsupportedBrowser();
     AnimationFrame.shim(); // https://github.com/kof/animation-frame
     $('#canvas_container canvas').each(function() {
         this.width = $(this).width(); // Set actual width to CSS width
