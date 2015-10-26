@@ -3,7 +3,6 @@
 // Note that this code is not exactly clean or well implemented, I'm just doing this for fun.
 
 var bg_animation_frame = new AnimationFrame(24); // Background animates at 24fps
-var playgraph_animation_frame = new AnimationFrame();
 var backgrounds = new Array();
 var pointerX = null;
 var pointerY = null;
@@ -74,12 +73,25 @@ function animate_background(timestamp) {
     }
     context.putImageData(background, 0, 0);
 }
+
+function create_note_bubble(note) {
+    var bubble = document.createElement('div');
+    bubble.className = 'notebubble';
+    $(bubble).css({'top': pointerY + 'px', 'left': pointerX  + 'px'})
+             .text(note)
+             .on('animationend', function() {
+                $(this).remove();
+             });
+    $('#canvas_container').append(bubble);
+}
+
 function play_loop() {
     playing = setTimeout(play_loop, 350);
-    var corrent_chord = possible_chords[(pointerY + possible_chords.length) % possible_chords.length];
-    $(corrent_chord).each(function() {
+    var current_chord = possible_chords[(pointerY + possible_chords.length) % possible_chords.length];
+    $(current_chord).each(function() {
         piano.play({'pitch': this, 'env': {hold: 0.35}});
     });
+    create_note_bubble(current_chord);
 }
 
 function main() {
