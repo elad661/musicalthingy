@@ -4,7 +4,7 @@
     cursor: none;
     position: relative;
 }
-@media only screen and (min-device-width: 768px){
+@media only screen and (min-device-width: 768px) and (max-device-width : 1024px) {
     /* This seems to be okay for Nexus 7 on landscape mode */
     #canvas_container {
         height: 299px;
