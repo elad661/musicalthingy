@@ -44,20 +44,37 @@
     color: white;
 }
 /* TODO: find colors for notes */
-.notebubble.A {
-}
-.notebubble.B {
-}
+/* Do */
 .notebubble.C {
+    background: #800000;
 }
+/* Re */
 .notebubble.D {
+    background: #B3AECD;
 }
+/* Mi */
 .notebubble.E {
+    background: #33CC33;
 }
+/* Fa */
 .notebubble.F {
+    background: #FF9900;
 }
+/* Sol */
 .notebubble.G {
+    background: #6600CC;
 }
+/* La */
+.notebubble.A {
+    background: #FF66FF;
+}
+/* Si */
+.notebubble.B {
+    background: #CCFFFF;
+    color: black;
+}
+
+
 footer {
     text-align: center;
     font-size: small;
