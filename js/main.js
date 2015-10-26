@@ -3,6 +3,7 @@
 // Note that this code is not exactly clean or well implemented, I'm just doing this for fun.
 
 var bg_animation_frame = new AnimationFrame(24); // Background animates at 24fps
+var playgraph_animation_frame = new AnimationFrame();
 var backgrounds = new Array();
 var pointerX = null;
 var pointerY = null;
@@ -95,10 +96,10 @@ function main() {
         fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
         pointerX = e.offsetX;
         pointerY = e.offsetY;
-	    var radius = 32;
+	    var radius = 16;
 	    fgcontext.beginPath();
 	    fgcontext.globalAlpha = 0.6;
-	    fgcontext.arc(pointerX-32, pointerY-32, radius, 0, (Math.PI/180)*360, false);
+	    fgcontext.arc(pointerX, pointerY, radius, 0, (Math.PI/180)*360, false);
 	    fgcontext.fill();
 	    fgcontext.closePath();
 
@@ -115,14 +116,11 @@ function main() {
         playing = false;
     });
     $(document).on('hide blur', function() {
-        console.log('hide');
         if(playing) {
             clearTimeout(playing);
             playing = false;
-            piano.stop();
     	}
     }).on('show focus', function() {
-        console.log('show');
         if (pointerX != null) {
     	    playing = setTimeout(play_loop, 0);
     	}
