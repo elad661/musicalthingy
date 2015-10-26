@@ -34,6 +34,7 @@ if (window.AudioContext != undefined) {
             });
         bass = new Wad({
             source : 'sine',
+            volume: 0.5,
             env : {
                 attack : .02,
                 decay : .1,
