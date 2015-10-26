@@ -78,6 +78,7 @@ function create_background(width, height) {
 }
 
 function animate_background(timestamp) {
+    // Animate background noise. Why noise? Because I can
     bg_animation_frame.request(animate_background);
     var canvas = document.getElementById('background_canvas');
     var context = canvas.getContext('2d');
@@ -143,6 +144,8 @@ function main() {
     var fgcanvas = document.getElementById('foreground_canvas');
     var fgcontext = fgcanvas.getContext('2d');
     $('#canvas_container').on('mousemove', function(e) {
+        //Draw cursor
+        //TODO: I want a better cursor, I want a fuzzy white circle that will interact with the background noise
         fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
         pointerX = e.offsetX;
         pointerY = e.offsetY;
