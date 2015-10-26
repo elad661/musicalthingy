@@ -1,3 +1,4 @@
+"use strict";
 // Avoid `console` errors in browsers that lack a console.
 (function() {
     var method;
@@ -20,5 +21,3 @@
         }
     }
 }());
-
-// Place any jQuery/helper plugins in here.
