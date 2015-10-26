@@ -8,7 +8,8 @@ var pointerX = null;
 var pointerY = null;
 var is_mouse_down = false;
 var playing = false;
-var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
+//var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
+var possible_chords = [['C5'], ['D5'], ['E5'], ['F5'], ['G5'], ['A5'], ['B5']]
 var possible_chords_bass = [['A2'], ['B2'], ['C2'], ['D2'], ['E2'], ['F2'], ['G2']]
 var piano;
 var bass;
