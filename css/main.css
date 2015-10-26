@@ -41,6 +41,22 @@
     height: 50px;
     line-height: 50px;
     text-align: center;
+    color: white;
+}
+/* TODO: find colors for notes */
+.notebubble.A {
+}
+.notebubble.B {
+}
+.notebubble.C {
+}
+.notebubble.D {
+}
+.notebubble.E {
+}
+.notebubble.F {
+}
+.notebubble.G {
 }
 footer {
     text-align: center;

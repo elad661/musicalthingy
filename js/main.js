@@ -6,10 +6,13 @@ var bg_animation_frame = new AnimationFrame(24); // Background animates at 24fps
 var backgrounds = new Array();
 var pointerX = null;
 var pointerY = null;
+var is_mouse_down = false;
 var playing = false;
 var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
+var possible_chords_bass = [['A2'], ['B2'], ['C2'], ['D2'], ['E2'], ['F2'], ['G2']]
 var piano;
-if (window.AudioContext != undefined)
+var bass;
+if (window.AudioContext != undefined) {
     piano = new Wad({
                 source : 'square',
                 env : {
@@ -29,7 +32,17 @@ if (window.AudioContext != undefined)
                     }
                 }
             });
-else
+        bass = new Wad({
+            source : 'sine',
+            env : {
+                attack : .02,
+                decay : .1,
+                sustain : .9,
+                hold : .4,
+                release : .1
+            }
+        });
+} else
     unsupportedBrowser();
 
 ImageData.prototype.setPixel = function(x, y, pixel) {
@@ -83,6 +96,7 @@ function create_note_bubble(note) {
     bubble.className = 'notebubble';
     $(bubble).css({'top': pointerY + 'px', 'left': pointerX  + 'px'})
              .text(note)
+             .addClass(note[0].charAt(0))
              .on('animationend', function() {
                 $(this).remove();
              });
@@ -90,12 +104,20 @@ function create_note_bubble(note) {
 }
 
 function play_loop() {
+    if (pointerY == null)
+        return false;
     playing = setTimeout(play_loop, 350);
     var current_chord = possible_chords[(pointerY + possible_chords.length) % possible_chords.length];
     $(current_chord).each(function() {
         piano.play({'pitch': this, 'env': {hold: 0.35}});
     });
     create_note_bubble(current_chord);
+    if (is_mouse_down) {
+        var current_chord = possible_chords_bass[(pointerY + possible_chords_bass.length) % possible_chords_bass.length];
+        $(current_chord).each(function() {
+            bass.play({'pitch': this, 'env': {hold: 0.35}});
+        });
+    }
 }
 
 function supported() {
@@ -131,6 +153,7 @@ function main() {
 	    fgcontext.closePath();
 
         piano.panning.location = parseFloat(pointerX / fgcanvas.width);
+        bass.panning.location = parseFloat(pointerX / fgcanvas.width);
         if (!playing) {
             playing = setTimeout(play_loop, 0);
         }
@@ -138,9 +161,14 @@ function main() {
     .on('mouseout', function(e) {
         pointerX = null;
         pointerY = null;
+        is_mouse_down = false;
         fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
         clearTimeout(playing);
         playing = false;
+    }).on('mousedown', function(e) {
+        is_mouse_down = true;
+    }).on('mouseup', function(e) {
+        is_mouse_down = false;
     });
     $(document).on('hide blur', function() {
         if(playing) {
