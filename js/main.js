@@ -273,7 +273,7 @@ function main() {
     $('#musicalzone').on('mousemove', function(e) {
         pointerX = e.offsetX;
         pointerY = e.offsetY;
-        piano.panning.location = parseFloat(pointerX / $(this).width());
+        piano.panning.location = parseFloat((pointerX / $(this).width()) * 2 - 1);
         bass.panning.location = piano.panning.location;
         if (playing==false) {
             playing = setTimeout(play_loop, 0);
@@ -295,7 +295,7 @@ function main() {
         var last_touch = e.originalEvent.changedTouches[e.originalEvent.changedTouches.length - 1];
         pointerX = last_touch.screenX;
         pointerY = last_touch.screenY;
-        piano.panning.location = parseFloat(pointerX / $(this).width());
+        piano.panning.location = parseFloat((pointerX / $(this).width()) * 2 - 1);
         bass.panning.location = piano.panning.location;
         if (!playing) {
             playing = setTimeout(play_loop, 0);
