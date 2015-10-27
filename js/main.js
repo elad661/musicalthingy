@@ -5,6 +5,7 @@
 var bg_animation_frame = new AnimationFrame(24); // Background animates at 24fps
 var animation_request = null;
 var backgrounds = new Array();
+var stack_height = new Array();
 var pointerX = null;
 var pointerY = null;
 var is_mouse_down = false;
@@ -143,8 +144,23 @@ function splat(position, color) {
         }
     }
     temp_context.putImageData(data, 0, 0);
-    context.drawImage(temp_canvas, position, canvas.height - 25)
-    // ??? can I make the fuzzy yarn pattern smartly stack until the entire screen is filled with yarn?
+    // Figure out if we need to draw over, or stack
+    var heightlevel = canvas.height - 25;
+    // Lower resolution positioning so you don't have to stay over the exact same pixel to go up to the next stack level.
+    var lowres_position = Math.round((position + canvas.width / 50) % canvas.width / 50);
+    if (stack_height[lowres_position] != undefined) {
+        heightlevel = stack_height[lowres_position]['y'];
+        stack_height[lowres_position]['count']++;
+        if (stack_height[lowres_position]['count'] > 10) {
+            heightlevel = heightlevel - 25;
+            stack_height[lowres_position]['count'] = 0;
+            stack_height[lowres_position]['y'] = heightlevel;
+        }
+     } else {
+        stack_height[lowres_position] = {'y': heightlevel,
+                                         'count': 0}
+    }
+    context.drawImage(temp_canvas, position, heightlevel)
 }
 
 function play_loop() {
@@ -178,10 +194,12 @@ function resize_canvases() {
         this.width = $(this.parentNode).width(); // Set actual width to CSS width
         this.height = $(this.parentNode).height(); // Set actual height to CSS height
     });
+    stack_height = [];
 }
 
 function make_some_noise() {
     // originally from http://noisehack.com/generate-noise-web-audio-api/
+    // Modified to use the modern Web Audio API.
     if (audiocontext)
         stop_noise();
     audiocontext = new AudioContext();
@@ -282,6 +300,7 @@ function main() {
             animation_request = bg_animation_frame.request(animate_background);
             make_some_noise();
             positive();
+            stack_height = [];
         } else {
             bg_animation_frame.cancel(animation_request);
             var canvas = document.getElementById('background_canvas');
@@ -290,6 +309,7 @@ function main() {
             animation_request = null;
             stop_noise();
             $('#musicalzone .positive').remove();
+            stack_height = [];
         }
     })
 }
