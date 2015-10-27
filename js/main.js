@@ -154,6 +154,8 @@ function splat(position, color) {
         stack_height[lowres_position]['count']++;
         if (stack_height[lowres_position]['count'] > 10) {
             heightlevel = heightlevel - 25;
+            if (heightlevel < - 25)
+                heightlevel = canvas.height - 25; // reset when reaching the top
             stack_height[lowres_position]['count'] = 0;
             stack_height[lowres_position]['y'] = heightlevel;
         }
