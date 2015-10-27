@@ -100,6 +100,11 @@ footer {
     width: 100%;
     bottom: 0;
 }
+
+a.sourcecode {
+    float: right;
+}
+
 svg {
     position: absolute;
     right: 1px;
