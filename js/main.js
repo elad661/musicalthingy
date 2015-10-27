@@ -3,20 +3,31 @@
 // Note that this code is not exactly clean or well implemented, I'm just doing this for fun.
 
 var bg_animation_frame = new AnimationFrame(24); // Background animates at 24fps
+var animation_request = null;
 var backgrounds = new Array();
 var pointerX = null;
 var pointerY = null;
 var is_mouse_down = false;
 var playing = false;
-//var possible_chords = [['A5'], ['B5'], ['C5'], ['D5'], ['E5'], ['F5'], ['G5']]
+var audiocontext = false;
+/* This is called possible_chords and not possilbe_notes because you can change it to play more than one note at a time,
+and that's why it's a 2D array and not a 1D array.
+
+I thought I'll make it more complicated later, but I like it the way it is now.
+*/
 var possible_chords = [['C5'], ['D5'], ['E5'], ['F5'], ['G5'], ['A5'], ['B5']]
-//var possible_chords_bass = [['A2'], ['B2'], ['C2'], ['D2'], ['E2'], ['F2'], ['G2']]
 var possible_chords_bass = [['C2'], ['D2'], ['E2'], ['F2'], ['G2'], ['A2'], ['B2']]
 var piano;
 var bass;
+var lineout_main;
 if (window.AudioContext != undefined) {
+    var wad_context = all_contexts[0];
+    var lineout_main = new WebAudiox.LineOut(wad_context);
+    lineout_main.volume = 0.8;
     piano = new Wad({
                 source : 'square',
+                volume: 0.8,
+                destination: lineout_main.destination,
                 env : {
                     attack : .01,
                     decay : .005,
@@ -37,6 +48,7 @@ if (window.AudioContext != undefined) {
         bass = new Wad({
             source : 'sine',
             volume: 0.5,
+            destination: lineout_main.destination,
             env : {
                 attack : .02,
                 decay : .1,
@@ -46,7 +58,7 @@ if (window.AudioContext != undefined) {
             }
         });
 } else
-    unsupportedBrowser();
+    unsupportedBrowser(); // :(
 
 ImageData.prototype.setPixel = function(x, y, pixel) {
     // Makes it easier to set a pixel on an imagedata
@@ -81,12 +93,14 @@ function create_background(width, height) {
 
 function animate_background(timestamp) {
     // Animate background noise. Why noise? Because I can
-    bg_animation_frame.request(animate_background);
+    if (!animation_request)
+        return false;
+    animation_request = bg_animation_frame.request(animate_background);
     var canvas = document.getElementById('background_canvas');
     var context = canvas.getContext('2d');
     var background = null;
-    if (backgrounds.length < 256) {
-        // Create 256 backgrounds, then cycle through them instead of wasting time generating a new one every frame
+    if (backgrounds.length < 64) {
+        // Create 64 backgrounds, then cycle through them instead of wasting time generating a new one every frame
         background = create_background(canvas.width, canvas.height);
         backgrounds.push(background);
     } else {
@@ -102,13 +116,39 @@ function create_note_bubble(note) {
              .text(note)
              .addClass(note[0].charAt(0))
              .on('animationend', function() {
-                $(this).remove();
+                var $this = $(this);
+                var left = this.offsetLeft;
+                var bgcolor = $this.css('backgroundColor');
+                bg_animation_frame.request(function() { splat(left, bgcolor); });
+                $this.remove();
              });
-    $('#canvas_container').append(bubble);
+    $('#musicalzone').append(bubble);
+}
+
+function splat(position, color) {
+    var canvas = document.getElementById('background_canvas');
+    var context = canvas.getContext('2d');
+    var temp_canvas = document.createElement('canvas')
+    temp_canvas.width = 50;
+    temp_canvas.height = 25;
+    var temp_context = temp_canvas.getContext('2d');
+    var data = new ImageData(50, 25);
+    var parsed_color = color.split('(')[1];
+    parsed_color = parsed_color.substring(0, parsed_color.length - 1).split(',');
+    parsed_color[3] = 200;
+    for (var y=0; y<25; y++) {
+        for (var x=0; x<50; x++) {
+            if (Math.random() > 0.5) // This makes a fuzzy yarn pattern. Maybe I should keep it this way instead of creating a color splat like I intended.
+                data.setPixel(x, y, parsed_color);
+        }
+    }
+    temp_context.putImageData(data, 0, 0);
+    context.drawImage(temp_canvas, position, canvas.height - 25)
+    // ??? can I make the fuzzy yarn pattern smartly stack until the entire screen is filled with yarn?
 }
 
 function play_loop() {
-    if (pointerY == null)
+    if (pointerY == null) // This is, of course, prone to race conditions. I like it this way, in a thing like this, random unexpected sounds are fun
         return false;
     playing = setTimeout(play_loop, 350);
     var current_chord = possible_chords[(pointerY + possible_chords.length) % possible_chords.length];
@@ -129,40 +169,81 @@ function supported() {
 }
 
 function unsupportedBrowser() {
-    $('#canvas_container').hide();
+    $('#musicalzone').hide();
     $('#unsupported').removeClass('hidden');
+}
+
+function resize_canvases() {
+    $('#musicalzone canvas').each(function() {
+        this.width = $(this.parentNode).width(); // Set actual width to CSS width
+        this.height = $(this.parentNode).height(); // Set actual height to CSS height
+    });
+}
+
+function make_some_noise() {
+    // originally from http://noisehack.com/generate-noise-web-audio-api/
+    if (audiocontext)
+        stop_noise();
+    audiocontext = new AudioContext();
+    var bufferSize = 2 * audiocontext.sampleRate; // 2 seconds long noise buffer
+    var noiseBuffer = audiocontext.createBuffer(1, bufferSize, audiocontext.sampleRate);
+    var output = noiseBuffer.getChannelData(0);
+    var lineout = new WebAudiox.LineOut(audiocontext);
+    lineout.volume = 0.09;
+    for (var i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+
+    var whiteNoise = audiocontext.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    whiteNoise.loop = true;
+    whiteNoise.start(0);
+
+    whiteNoise.connect(lineout.destination);
+}
+function stop_noise() {
+    if (audiocontext) {
+        audiocontext.close();
+        audiocontext = null;
+    }
+}
+
+function positive() {
+    var messages = ['everything will be okay.',
+                    'you do matter.',
+                    'things will get better.',
+                    'just hold on.'];
+    var current_message = 0;
+    var container = document.createElement('div');
+    container.className = 'positive';
+    $(container).text(messages[0]).on('animationend', function() {
+        if ($(this).hasClass('blurout')) {
+            current_message++;
+            if (current_message > messages.length -1)
+                current_message = 0;
+            $(this).text(messages[current_message])
+                   .removeClass('blurout');
+        } else {
+            $(this).addClass('blurout');
+        }
+    });
+    $('#musicalzone').append(container);
 }
 
 function main() {
     if (!supported())
         return unsupportedBrowser();
     AnimationFrame.shim(); // https://github.com/kof/animation-frame
-    $('#canvas_container canvas').each(function() {
-        this.width = $(this).width(); // Set actual width to CSS width
-        this.height = $(this).height(); // Set actual height to CSS height
-    });
+    resize_canvases();
+    $(window).resize(resize_canvases);
 
-    bg_animation_frame.request(animate_background);
-    var fgcanvas = document.getElementById('foreground_canvas');
-    var fgcontext = fgcanvas.getContext('2d');
-    $('#canvas_container').on('mousemove', function(e) {
-        //Draw cursor
-        //TODO: I want a better cursor, I want a fuzzy white circle that will interact with the background noise
-        fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
+    // handle mouse and touch events on the musical zone
+    $('#musicalzone').on('mousemove', function(e) {
         pointerX = e.offsetX;
         pointerY = e.offsetY;
-	    var radius = 16;
-	    fgcontext.beginPath();
-	    fgcontext.globalAlpha = 0.6;
-	    if (is_mouse_down)
-	        fgcontext.globalAlpha = 0.75;
-	    fgcontext.arc(pointerX, pointerY, radius, 0, (Math.PI/180)*360, false);
-	    fgcontext.fill();
-	    fgcontext.closePath();
-
-        piano.panning.location = parseFloat(pointerX / fgcanvas.width);
-        bass.panning.location = parseFloat(pointerX / fgcanvas.width);
-        if (!playing) {
+        piano.panning.location = parseFloat(pointerX / $(this).width());
+        bass.panning.location = piano.panning.location;
+        if (playing==false) {
             playing = setTimeout(play_loop, 0);
         }
     })
@@ -170,7 +251,6 @@ function main() {
         pointerX = null;
         pointerY = null;
         is_mouse_down = false;
-        fgcontext.clearRect(0, 0, fgcanvas.width, fgcanvas.height);
         clearTimeout(playing);
         playing = false;
     }).on('mousedown', function(e) {
@@ -181,8 +261,8 @@ function main() {
         var last_touch = e.originalEvent.changedTouches[e.originalEvent.changedTouches.length - 1];
         pointerX = last_touch.screenX;
         pointerY = last_touch.screenY;
-        piano.panning.location = parseFloat(pointerX / fgcanvas.width);
-        bass.panning.location = parseFloat(pointerX / fgcanvas.width);
+        piano.panning.location = parseFloat(pointerX / $(this).width());
+        bass.panning.location = piano.panning.location;
         if (!playing) {
             playing = setTimeout(play_loop, 0);
         }
@@ -197,6 +277,21 @@ function main() {
     	    playing = setTimeout(play_loop, 0);
     	}
     });
+    $('svg').on('click', function() {
+        if (animation_request == null) {
+            animation_request = bg_animation_frame.request(animate_background);
+            make_some_noise();
+            positive();
+        } else {
+            bg_animation_frame.cancel(animation_request);
+            var canvas = document.getElementById('background_canvas');
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            animation_request = null;
+            stop_noise();
+            $('#musicalzone .positive').remove();
+        }
+    })
 }
 
 $(document).ready(main);

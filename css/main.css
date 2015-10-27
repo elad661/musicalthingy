@@ -1,22 +1,10 @@
-#canvas_container {
-    width: 100%;
-    height: 600px;
-    cursor: none;
-    position: relative;
-}
-@media only screen and (min-device-width: 768px) and (max-device-width : 1024px) {
-    /* This seems to be okay for Nexus 7 on landscape mode */
-    #canvas_container {
-        height: 299px;
-    }
-}
-
-#canvas_container canvas {
+#musicalzone canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    pointer-events: none;
 }
 #foreground_canvas {
     z-index: 9;
@@ -24,6 +12,27 @@
 #background_canvas {
     z-index: -1;
 }
+
+html, body {
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+header.container {
+    width: 80%;
+    padding: 5px;
+}
+
+#musicalzone {
+    height: 85%;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    position: relative;
+}
+
 @keyframes falling_note{
   0% {
     opacity:1;
@@ -49,8 +58,9 @@
     line-height: 50px;
     text-align: center;
     color: white;
+    pointer-events: none;
 }
-/* TODO: find colors for notes */
+
 /* Do */
 .notebubble.C {
     background: #800000;
@@ -89,4 +99,58 @@ footer {
     position: absolute;
     width: 100%;
     bottom: 0;
+}
+svg {
+    position: absolute;
+    right: 1px;
+    bottom: 1px;
+}
+
+@keyframes blurin {
+    0% {
+        text-shadow: 1px 1px 25px rgba(0, 0, 0, 0.1);
+        color: transparent;
+    }
+    100% {
+	    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+	    color: rgba(0, 0, 0, 0.1);
+    }
+}
+@keyframes blurout {
+    0% {
+	    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        text-shadow: 1px 1px 25px rgba(0, 0, 0, 0.0);
+        color: transparent;
+    }
+}
+
+.positive {
+    animation: blurin linear;
+    animation-duration: 3s;
+    animation-iteration-count: 1;
+	color: rgba(0, 0, 0, 0.1);
+	font-size: 11rem;
+	text-align: center;
+	text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+	font-family: 'Open Sans', sans-serif;
+}
+.positive.blurout {
+    animation: blurout linear;
+    animation-duration: 4s;
+    animation-iteration-count: 1;
+    animation-delay: 2s;
+}
+
+.about {
+    background: rgb(231, 252, 255) none repeat scroll 0% 0%;
+    padding: 5px 5px 5px 10px;
+    margin-top: 15px;
+    padding-left: 10px;
+    border-radius: 14px;
+}
+
+header p a {
+    float: right;
 }

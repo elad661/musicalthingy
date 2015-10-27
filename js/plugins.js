@@ -21,3 +21,13 @@
         }
     }
 }());
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var original_AudioContext = AudioContext;
+var all_contexts = [];
+if (AudioContext)
+    AudioContext = function() {
+        var context = new original_AudioContext();
+        all_contexts.push(context);
+        return context;
+    };
