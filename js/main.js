@@ -199,6 +199,7 @@ function resize_canvases() {
         this.height = $(this.parentNode).height(); // Set actual height to CSS height
     });
     stack_height = [];
+    backgrounds = [];
 }
 
 function make_some_noise() {
