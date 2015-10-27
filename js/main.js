@@ -1,4 +1,5 @@
 "use strict";
+// Copyright © 2015 Elad Alfassa <elad@eladalfassa.com>
 // I'm not minifiying this because I prefer to sacrifice performance in favour of "view source" being useful for people who want to see what I did.
 // Note that this code is not exactly clean or well implemented, I'm just doing this for fun.
 
