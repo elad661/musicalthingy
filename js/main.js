@@ -10,6 +10,7 @@ var pointerX = null;
 var pointerY = null;
 var is_mouse_down = false;
 var playing = false;
+var name_has_faded = false;
 var audiocontext = false;
 /* This is called possible_chords and not possilbe_notes because you can change it to play more than one note at a time,
 and that's why it's a 2D array and not a 1D array.
@@ -248,6 +249,16 @@ function positive() {
     $('#musicalzone').append(container);
 }
 
+function fade_name() {
+    name_has_faded = true;
+    setTimeout(function() {
+               $('#gamename').fadeOut(2700, function() {
+                                                         $(this).remove()
+                                                         });
+               }, 1000);
+
+}
+
 function main() {
     if (!supported())
         return unsupportedBrowser();
@@ -264,6 +275,8 @@ function main() {
         if (playing==false) {
             playing = setTimeout(play_loop, 0);
         }
+        if (!name_has_faded)
+            fade_name();
     })
     .on('mouseout touchend', function(e) {
         pointerX = null;
@@ -284,6 +297,8 @@ function main() {
         if (!playing) {
             playing = setTimeout(play_loop, 0);
         }
+        if (!name_has_faded)
+            fade_name();
     });
     $(document).on('hide blur', function() {
         if(playing) {
