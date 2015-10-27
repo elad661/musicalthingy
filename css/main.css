@@ -59,6 +59,10 @@ header.container {
     text-align: center;
     color: white;
     pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* Do */
@@ -140,6 +144,11 @@ svg {
 	text-align: center;
 	text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 	font-family: 'Open Sans', sans-serif;
+	pointer-events: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .positive.blurout {
     animation: blurout linear;
