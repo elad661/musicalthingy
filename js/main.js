@@ -23,6 +23,7 @@ var possible_chords_bass = [['C2'], ['D2'], ['E2'], ['F2'], ['G2'], ['A2'], ['B2
 var piano;
 var bass;
 var lineout_main;
+var worked_around_ios9_bug = false;
 if (window.AudioContext != undefined) {
     var wad_context = all_contexts[0];
     var lineout_main = new WebAudiox.LineOut(wad_context);
@@ -281,6 +282,16 @@ function main() {
         }
         if (!name_has_faded)
             fade_name();
+    })
+    .on('touchend', function(e) {
+        /* horrible iOS 9 workaround:
+           iOS 9 has a bug in which only touchend is considered user interaction.
+           if we start the sound once on touchend, it should work around this bug.
+        */
+        if (!worked_around_ios9_bug) {
+            play_loop();
+            worked_around_ios9_bug = true;
+        }
     })
     .on('mouseout touchend', function(e) {
         pointerX = null;
