@@ -277,7 +277,7 @@ function main() {
         piano.panning.location = parseFloat((pointerX / $(this).width()) * 2 - 1);
         bass.panning.location = piano.panning.location;
         if (playing==false) {
-            playing = setTimeout(play_loop, 0);
+            play_loop(); // We must start the play loop synchronously to work around an iOS bug: http://www.holovaty.com/writing/ios9-web-audio/
         }
         if (!name_has_faded)
             fade_name();
@@ -299,7 +299,7 @@ function main() {
         piano.panning.location = parseFloat((pointerX / $(this).width()) * 2 - 1);
         bass.panning.location = piano.panning.location;
         if (!playing) {
-            playing = setTimeout(play_loop, 0);
+            play_loop(); // We must start the play loop synchronously to work around an iOS bug: http://www.holovaty.com/writing/ios9-web-audio/
         }
         if (!name_has_faded)
             fade_name();
