@@ -23,3 +23,16 @@
 }());
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+var canUseUint8 = function() {
+    if (!'Uint8ClampedArray' in window)
+        return false;
+    if (!'ArrayBuffer' in window)
+        return false;
+    if (!'Uint32Array' in window)
+        return false;
+    var data = new ImageData(1,1);
+    if (data.data instanceof Uint8ClampedArray)
+        return true;
+    return false;
+}();

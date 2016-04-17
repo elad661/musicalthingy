@@ -24,6 +24,7 @@ var piano;
 var bass;
 var lineout_main;
 var worked_around_ios9_bug = false;
+var webworker;
 if (window.AudioContext != undefined) {
     var lineout_main = new WebAudiox.LineOut(Wad.audioContext);
     lineout_main.volume = 0.8;
@@ -80,17 +81,46 @@ function randint(max) {
 
 function create_background(width, height) {
     // Create grayscale noise background
+    if (canUseUint8)
+        return create_background_fast(width, height);
+    else
+        return create_background_slow(width, height);
+}
+
+function create_background_slow(width, height) {
+    // Create grayscale noise background (slower, for older browsers)
     var canvas_data = new ImageData(width, height);
+    var pixel = new Array(3);
     for (var y=0; y<height; y++) {
         for (var x=0; x<width; x++) {
-            var pixel=new Array();
-            pixel[0] = Math.round((randint(256)+randint(256)+randint(256)+randint(256))/4);
+            pixel[0] = Math.round((randint(256)+randint(256)+randint(256))/3);
             pixel[1] = pixel[0];
             pixel[2] = pixel[0];
             pixel[3] = 128;
             canvas_data.setPixel(x, y, pixel);
         }
     }
+    return canvas_data;
+}
+
+function create_background_fast(width, height) {
+    // Create grayscale noise background - about 50% faster in Firefox
+    var canvas_data = new ImageData(width, height);
+    var buf = new ArrayBuffer(canvas_data.data.length);
+    var buf8 = new Uint8ClampedArray(buf);
+    var data = new Uint32Array(buf);
+
+    for (var y=0; y<height; y++) {
+        for (var x=0; x<width; x++) {
+            var color = Math.round((randint(256)+randint(256)+randint(256))/3);
+            data[y * width + x] =
+                (128   << 24) |   // alpha
+                (color << 16) |   // blue
+                (color <<  8) |   // green
+                color;            // red
+        }
+    }
+    canvas_data.data.set(buf8);
     return canvas_data;
 }
 
@@ -102,14 +132,58 @@ function animate_background(timestamp) {
     var canvas = document.getElementById('background_canvas');
     var context = canvas.getContext('2d');
     var background = null;
-    if (backgrounds.length < 64) {
-        // Create 64 backgrounds, then cycle through them instead of wasting time generating a new one every frame
-        background = create_background(canvas.width, canvas.height);
-        backgrounds.push(background);
-    } else {
-        background = backgrounds[randint(backgrounds.length-1)]
+    if (Modernizr.webworkers) { // Use a web worker to generate the background.
+        if (webworker === undefined && backgrounds.length < 32) {
+            start_worker(canvas.width, canvas.height);
+        }
+
+        if (backgrounds.length > 0)
+            background = backgrounds[randint(backgrounds.length-1)]
+
+    } else {  // Do it on the main thread when web workers are not supported.
+        if (backgrounds.length < 64) {
+            // Create 64 backgrounds, then cycle through them instead of wasting time generating a new one every frame
+            background = create_background(canvas.width/2, canvas.height/2);
+            backgrounds.push(background);
+        } else {
+            background = backgrounds[randint(backgrounds.length-1)]
+        }
     }
-    context.putImageData(background, 0, 0);
+    if (background !== null) {
+        context.putImageData(background, 0, 0);
+        if (background.width < canvas.width) {  // tile background
+            context.putImageData(background, background.width, 0);
+            context.putImageData(background, 0, background.height);
+            context.putImageData(background, background.width, background.height);
+        }
+    }
+}
+
+function start_worker(width, height) {
+    console.log('starting worker');
+    try {
+        webworker = new Worker('js/backgroundworker.js');
+    } catch(e) {
+        console.error('Error: ' +e + ' when starting worker' +
+                      '\nfalling back to no-workers')
+        Modernizr.webworkers = false;
+        return;
+    }
+    webworker.onmessage = function(event){
+        if (event.data != null) {
+            backgrounds.push(event.data);
+        } else {
+            Modernizr.webworkers = false;
+            webworker.terminate();
+            webworker = undefined;
+            console.error('invalid message from worker')
+        }
+    };
+    // start worker
+    webworker.postMessage({'width': width,
+                           'height': height,
+                           'fastpixel': canUseUint8,
+                           'howmany': 32 - backgrounds.length});
 }
 
 function create_note_bubble(note) {
@@ -339,6 +413,10 @@ function main() {
             stop_noise();
             $('#musicalzone .positive').remove();
             stack_height = [];
+            if (webworker !== undefined) {
+                webworker.terminate();
+                webworker = undefined;
+            }
         }
     })
 }
