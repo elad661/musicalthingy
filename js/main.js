@@ -25,8 +25,7 @@ var bass;
 var lineout_main;
 var worked_around_ios9_bug = false;
 if (window.AudioContext != undefined) {
-    var wad_context = all_contexts[0];
-    var lineout_main = new WebAudiox.LineOut(wad_context);
+    var lineout_main = new WebAudiox.LineOut(Wad.audioContext);
     lineout_main.volume = 0.8;
     piano = new Wad({
                 source : 'square',
