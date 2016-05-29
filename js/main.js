@@ -133,7 +133,7 @@ function animate_background(timestamp) {
     var context = canvas.getContext('2d');
     var background = null;
     if (Modernizr.webworkers) { // Use a web worker to generate the background.
-        if (webworker === undefined && backgrounds.length < 32) {
+        if (webworker === undefined && backgrounds.length < 64) {
             start_worker(canvas.width, canvas.height);
         }
 
@@ -183,7 +183,7 @@ function start_worker(width, height) {
     webworker.postMessage({'width': width,
                            'height': height,
                            'fastpixel': canUseUint8,
-                           'howmany': 32 - backgrounds.length});
+                           'howmany': 64 - backgrounds.length});
 }
 
 function create_note_bubble(note) {
