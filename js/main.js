@@ -274,6 +274,10 @@ function resize_canvases() {
     });
     stack_height = [];
     backgrounds = [];
+    if (webworker != undefined) {
+        webworker.terminate();
+        webworker = undefined;
+    }
 }
 
 function make_some_noise() {
@@ -400,6 +404,12 @@ function main() {
     });
     $('svg').on('click', function() {
         if (animation_request == null) {
+            if (!name_has_faded) {
+                name_has_faded = true;
+                $('#gamename').fadeOut(700, function() {
+                                                         $(this).remove()
+                                                         });
+            }
             animation_request = bg_animation_frame.request(animate_background);
             make_some_noise();
             positive();
